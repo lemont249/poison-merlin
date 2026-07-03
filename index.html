@@ -1,106 +1,222 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>毒药与梅林</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>毒药与梅林</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f1a;--surface:#1a1a2e;--surface-light:#252540;--primary:#6c5ce7;--primary-glow:#a29bfe;--danger:#e74c3c;--good:#2ecc71;--evil:#e74c3c;--text:#e8e8f0;--text-dim:#8888a0;--border:#2a2a45;--radius:14px;--radius-sm:10px}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;align-items:center;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#app{width:100%;max-width:420px;height:100vh;max-height:100dvh;overflow-y:auto;padding:20px 16px;position:relative}
+.screen{display:none;flex-direction:column;align-items:center;min-height:100%;padding-bottom:40px}
+.screen.active{display:flex}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:14px 28px;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;width:100%;max-width:320px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 20px rgba(108,92,231,.3)}
+.btn-primary:disabled{background:#3a3a55;color:#666;box-shadow:none;cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--primary-glow);border:2px solid var(--primary)}
+.btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+.btn-sm{padding:10px 18px;font-size:14px}
+.home-container{text-align:center;padding-top:40px}
+.game-title{font-size:30px;font-weight:800;margin-bottom:4px;background:linear-gradient(135deg,var(--primary-glow),var(--danger));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.game-subtitle{color:var(--text-dim);font-size:13px;margin-bottom:28px}
+.home-buttons{display:flex;flex-direction:column;gap:12px;align-items:center;margin-bottom:20px}
+.name-input{display:flex;flex-direction:column;gap:6px;align-items:center;margin-bottom:16px}
+.name-input label{font-size:13px;color:var(--text-dim)}
+.name-input input{padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:16px;text-align:center;width:200px;font-family:inherit}
+.name-input input:focus{outline:none;border-color:var(--primary)}
+.hidden{display:none!important}
+.hint-text{font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.join-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.join-form input{padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:18px;text-align:center;width:140px;letter-spacing:6px;font-family:monospace}
+.join-form input:focus{outline:none;border-color:var(--primary)}
+#screen-lobby{text-align:center;padding-top:30px}
+#screen-lobby h2{font-size:22px;margin-bottom:16px}
+.room-code-display{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 24px;margin-bottom:16px;display:inline-flex;flex-direction:column;gap:4px}
+.room-code-display .label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px}
+.room-code-display .code{font-size:36px;font-weight:800;letter-spacing:8px;font-family:'Courier New',monospace;color:var(--primary-glow)}
+.lobby-hint{color:var(--text-dim);font-size:14px;margin-bottom:14px}
+.player-list{list-style:none;display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px;margin:0 auto 20px}
+.player-list li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:15px}
+.player-list li .player-dot{width:10px;height:10px;border-radius:50%;background:var(--good);flex-shrink:0}
+.lobby-actions{display:flex;flex-direction:column;align-items:center;gap:6px}
+#screen-role-reveal{text-align:center;padding-top:24px}
+#screen-role-reveal h2{font-size:20px;margin-bottom:16px}
+.role-card{background:var(--surface);border:2px solid var(--primary);border-radius:var(--radius);padding:28px 24px;margin-bottom:14px;text-align:center;box-shadow:0 8px 32px rgba(108,92,231,.2);animation:cardReveal .6s ease-out;width:100%;max-width:300px}
+@keyframes cardReveal{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.role-icon{font-size:56px;margin-bottom:8px}
+.role-card h3{font-size:26px;font-weight:700;margin-bottom:4px}
+.role-side{font-size:13px;font-weight:600;margin-bottom:8px;padding:3px 14px;border-radius:20px;display:inline-block}
+.role-side.good{background:rgba(46,204,113,.15);color:var(--good)}
+.role-side.evil{background:rgba(231,76,60,.15);color:var(--evil)}
+.role-desc{font-size:14px;color:var(--text-dim);line-height:1.6}
+.info-box{background:var(--surface-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin:10px auto;font-size:14px;max-width:300px;width:100%;text-align:center}
+.info-box strong{color:var(--primary-glow)}
+#screen-night-waiting,#screen-night-action,#screen-night-info{text-align:center;padding-top:24px}
+#screen-night-waiting h2,#screen-night-action h2,#screen-night-info h2{font-size:20px;margin-bottom:6px}
+#screen-night-action h3{font-size:20px;margin-bottom:6px}
+.round-badge{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 16px;font-size:13px;color:var(--text-dim);margin:10px 0 14px}
+.round-badge span{color:var(--text);font-weight:700}
+.night-desc{font-size:14px;color:var(--text-dim);margin-bottom:2px}
+.night-hint{font-size:13px;color:var(--danger);margin-bottom:14px}
+.target-list{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;margin:0 auto 12px}
+.target-btn{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:16px;font-size:16px;color:var(--text);cursor:pointer;transition:all .2s;font-family:inherit;text-align:center}
+.target-btn:active{transform:scale(.97);border-color:var(--primary);background:var(--surface-light)}
+.waiting-animation{padding:40px 0}
+.moon-icon{font-size:64px;animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.waiting-text{font-size:16px;color:var(--text-dim);margin:16px 0}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.info-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;font-size:15px;line-height:1.8;max-width:300px;width:100%}
+.info-content strong{color:var(--primary-glow)}
+#screen-game-over{text-align:center;padding-top:60px}
+#screen-game-over h2{font-size:24px;margin-bottom:12px}
+.game-over-icon{font-size:72px;margin-bottom:16px}
+#game-over-reason{font-size:17px;font-weight:600;margin-bottom:6px;line-height:1.5;padding:0 16px}
+#game-over-detail{font-size:14px;color:var(--text-dim);margin-bottom:28px;white-space:pre-line;padding:0 16px}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--surface-light);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 24px;font-size:14px;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:toastIn .3s ease-out;pointer-events:none}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(max-width:360px){.game-title{font-size:24px}.room-code-display .code{font-size:28px;letter-spacing:6px}}
+</style>
 </head>
 <body>
 <div id="app">
-
-  <!-- ====== 首页 ====== -->
-  <div id="screen-home" class="screen active">
-    <div class="home-container">
-      <h1 class="game-title">🧪 毒药与梅林</h1>
-      <p class="game-subtitle">四人身份推理 · 联机版</p>
-      <div class="name-input">
-        <label>你的昵称</label>
-        <input type="text" id="input-player-name" placeholder="输入昵称" maxlength="8">
-      </div>
-      <div class="home-buttons">
-        <button id="btn-create" class="btn btn-primary">🏠 创建房间</button>
-        <button id="btn-join" class="btn btn-outline">🚪 加入房间</button>
-      </div>
-      <div id="join-section" class="join-form">
-        <input type="text" id="input-room-code" placeholder="输入4位房间号" maxlength="4" inputmode="numeric" pattern="[0-9]*">
-        <button id="btn-join-submit" class="btn btn-primary btn-sm">加入</button>
-        <button id="btn-join-cancel" class="btn btn-ghost btn-sm">取消</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ====== 房间大厅 ====== -->
-  <div id="screen-lobby" class="screen">
-    <h2>🏠 房间大厅</h2>
-    <div class="room-code-display">
-      <span class="label">房间号</span>
-      <span id="lobby-room-code" class="code">----</span>
-    </div>
-    <p class="lobby-hint">等待玩家加入（4人）…</p>
-    <ul id="lobby-player-list" class="player-list"></ul>
-    <div class="lobby-actions">
-      <button id="btn-start-game" class="btn btn-primary" disabled>🎮 开始游戏（需4人）</button>
-      <p id="lobby-start-hint" class="hint-text">仅房主可开始</p>
-    </div>
-  </div>
-
-  <!-- ====== 身份揭示 ====== -->
-  <div id="screen-role-reveal" class="screen">
-    <h2>🎭 你的身份</h2>
-    <div id="role-card" class="role-card">
-      <div class="role-icon" id="role-icon">❓</div>
-      <h3 id="role-name">---</h3>
-      <p id="role-side" class="role-side">---</p>
-      <p id="role-desc" class="role-desc">---</p>
-    </div>
-    <div id="role-extra-info" class="info-box hidden"></div>
-    <button id="btn-confirm-role" class="btn btn-primary">✅ 确认身份，进入夜晚</button>
-  </div>
-
-  <!-- ====== 夜晚等待 ====== -->
-  <div id="screen-night-waiting" class="screen">
-    <h2>🌙 夜晚阶段</h2>
-    <div class="round-badge">第 <span id="round-num-waiting">1</span> / 5 轮</div>
-    <div class="waiting-animation">
-      <div class="moon-icon">🌙</div>
-      <p id="waiting-reason" class="waiting-text">等待其他玩家行动…</p>
-      <div class="spinner"></div>
-    </div>
-  </div>
-
-  <!-- ====== 夜晚行动 ====== -->
-  <div id="screen-night-action" class="screen">
-    <h2>🌙 夜晚阶段</h2>
-    <div class="round-badge">第 <span id="round-num-action">1</span> / 5 轮</div>
-    <h3 id="action-title">选择目标</h3>
-    <p id="action-desc" class="night-desc"></p>
-    <p id="action-hint" class="night-hint"></p>
-    <div id="action-targets" class="target-list"></div>
-    <button id="btn-action-skip" class="btn btn-ghost">⏭️ 跳过</button>
-  </div>
-
-  <!-- ====== 夜晚信息 ====== -->
-  <div id="screen-night-info" class="screen">
-    <h2>🌙 夜晚信息</h2>
-    <div class="round-badge">第 <span id="round-num-info">1</span> / 5 轮</div>
-    <div id="night-info-content" class="info-content"></div>
-    <button id="btn-confirm-info" class="btn btn-primary">✅ 确认，进入下一轮</button>
-  </div>
-
-  <!-- ====== 游戏结束 ====== -->
-  <div id="screen-game-over" class="screen">
-    <h2 id="game-over-title">🏆 游戏结束</h2>
-    <div id="game-over-icon" class="game-over-icon">🎉</div>
-    <p id="game-over-reason"></p>
-    <p id="game-over-detail"></p>
-    <button id="btn-new-game" class="btn btn-primary">🔄 再来一局</button>
-  </div>
-
-  <div id="toast" class="toast hidden"></div>
+<div id="screen-home" class="screen active">
+<div class="home-container">
+<h1 class="game-title">🧪 毒药与梅林</h1>
+<p class="game-subtitle">四人身份推理 · 联机版</p>
+<div class="name-input"><label>你的昵称</label><input type="text" id="input-player-name" placeholder="输入昵称" maxlength="8"></div>
+<div class="home-buttons"><button id="btn-create" class="btn btn-primary">🏠 创建房间</button><button id="btn-join" class="btn btn-outline">🚪 加入房间</button></div>
+<div id="join-section" class="join-form hidden"><input type="text" id="input-room-code" placeholder="输入4位房间号" maxlength="4" inputmode="numeric" pattern="[0-9]*"><button id="btn-join-submit" class="btn btn-primary btn-sm">加入</button><button id="btn-join-cancel" class="btn btn-ghost btn-sm">取消</button></div>
+</div></div>
+<div id="screen-lobby" class="screen">
+<h2>🏠 房间大厅</h2>
+<div class="room-code-display"><span class="label">房间号</span><span id="lobby-room-code" class="code">----</span></div>
+<p class="lobby-hint">等待玩家加入（4人）…</p>
+<ul id="lobby-player-list" class="player-list"></ul>
+<div class="lobby-actions"><button id="btn-start-game" class="btn btn-primary" disabled>🎮 开始游戏（需4人）</button><p id="lobby-start-hint" class="hint-text">仅房主可开始</p></div>
+</div>
+<div id="screen-role-reveal" class="screen">
+<h2>🎭 你的身份</h2>
+<div id="role-card" class="role-card"><div class="role-icon" id="role-icon">❓</div><h3 id="role-name">---</h3><p id="role-side" class="role-side">---</p><p id="role-desc" class="role-desc">---</p></div>
+<div id="role-extra-info" class="info-box hidden"></div>
+<button id="btn-confirm-role" class="btn btn-primary">✅ 确认身份，进入夜晚</button>
+</div>
+<div id="screen-night-waiting" class="screen">
+<h2>🌙 夜晚阶段</h2>
+<div class="round-badge">第 <span id="round-num-waiting">1</span> / 5 轮</div>
+<div class="waiting-animation"><div class="moon-icon">🌙</div><p id="waiting-reason" class="waiting-text">等待其他玩家行动…</p><div class="spinner"></div></div>
+</div>
+<div id="screen-night-action" class="screen">
+<h2>🌙 夜晚阶段</h2>
+<div class="round-badge">第 <span id="round-num-action">1</span> / 5 轮</div>
+<h3 id="action-title">选择目标</h3>
+<p id="action-desc" class="night-desc"></p><p id="action-hint" class="night-hint"></p>
+<div id="action-targets" class="target-list"></div>
+<button id="btn-action-skip" class="btn btn-ghost">⏭️ 跳过</button>
+</div>
+<div id="screen-night-info" class="screen">
+<h2>🌙 夜晚信息</h2>
+<div class="round-badge">第 <span id="round-num-info">1</span> / 5 轮</div>
+<div id="night-info-content" class="info-content"></div>
+<button id="btn-confirm-info" class="btn btn-primary">✅ 确认，进入下一轮</button>
+</div>
+<div id="screen-game-over" class="screen">
+<h2 id="game-over-title">🏆 游戏结束</h2>
+<div id="game-over-icon" class="game-over-icon">🎉</div>
+<p id="game-over-reason"></p><p id="game-over-detail"></p>
+<button id="btn-new-game" class="btn btn-primary">🔄 再来一局</button>
+</div>
+<div id="toast" class="toast hidden"></div>
 </div>
 
-<script src="app.js"></script>
+<script>
+const SUPABASE_URL='https://catomgbmokxgrlcgxgsq.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdG9tZ2Jtb2t4Z3JsY2d4Z3NxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwNDY3NTcsImV4cCI6MjA5ODYyMjc1N30.ileKS2UWUHbNAicOqqgLrCYx5Fg4g0k9k06TiELGeLE';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+let myName='',myRole=null,myPlayerId='',roomCode='',isHost=!1,dbChannel=null,actionChannel=null,gameData=null;
+
+function showScreen(id){$$('.screen').forEach(s=>s.classList.remove('active'));const e=$('#screen-'+id);if(e)e.classList.add('active')}
+function showToast(m,t){const e=$('#toast');e.textContent=m;e.className='toast';if(t)e.classList.add(t);e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),2500)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function getRole(k){const m={merlin:{name:'梅林',icon:'🧙‍♂️',side:'good',sideLabel:'好人阵营',desc:'免疫投毒和解毒负面效果。知道谁是投毒者。'},mage:{name:'法师',icon:'🧙',side:'good',sideLabel:'好人阵营',desc:'夜晚可对一人施法解毒；若对方未中毒，则反噬中毒。也可不行动。'},sage:{name:'知者',icon:'📊',side:'good',sideLabel:'好人阵营',desc:'知道本轮白天的中毒总人数。'},loyalist:{name:'忠臣',icon:'🛡️',side:'good',sideLabel:'好人阵营',desc:'知道谁是梅林。'},poisoner:{name:'投毒者',icon:'☠️',side:'evil',sideLabel:'坏人阵营',desc:'夜晚可投毒一人。知道一张未入局的好人身份。'}};return m[k]||{name:'未知',icon:'❓',side:'',sideLabel:'',desc:''}}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
+function genId(){return'p_'+Math.random().toString(36).slice(2,10)}
+function genRoom(){let c='';for(let i=0;i<4;i++)c+=Math.floor(Math.random()*10);return c}
+
+function createGameState(players){
+  const ip=['merlin'],og=['mage','sage','loyalist'];shuffle(og);ip.push(og[0],og[1]);
+  const unused=og[2];ip.push('poisoner');shuffle(ip);
+  const pw=players.map((p,i)=>({...p,role:ip[i]}));shuffle(pw);
+  return{players:pw,unusedRole:unused,phase:'role-reveal',round:1,poisonerTarget:null,mageTarget:null,merlinPoisonCount:0,poisonList:[],gameOver:!1,winner:null,winReason:null,confirmedPlayers:[]};
+}
+
+function getPlayerView(gs,pid){
+  const p=gs.players.find(x=>x.id===pid);if(!p)return null;
+  const v={myRole:p.role,myName:p.name,phase:gs.phase,round:gs.round,maxRounds:5,gameOver:gs.gameOver,winner:gs.winner,winReason:gs.winReason,players:gs.players.map(x=>({id:x.id,name:x.name,role:x.id===pid?x.role:undefined}))};
+  if(p.role==='poisoner'&&gs.unusedRole)v.unusedRole=getRole(gs.unusedRole);
+  if(p.role==='merlin'){const po=gs.players.find(x=>x.role==='poisoner');if(po)v.merlinInfo={poisonerName:po.name}}
+  if(p.role==='sage'&&gs.phase==='night-info')v.sageInfo={poisonCount:gs.poisonList.length};
+  if(p.role==='loyalist'){const me=gs.players.find(x=>x.role==='merlin');if(me)v.loyalistInfo={merlinName:me.name}}
+  if(gs.phase==='night-poisoner'&&p.role==='poisoner'){v.canAct=!0;v.actionType='poison';v.targets=gs.players.filter(x=>x.id!==pid).map(x=>({id:x.id,name:x.name}))}
+  if(gs.phase==='night-mage'&&p.role==='mage'){v.canAct=!0;v.actionType='detox';v.targets=gs.players.filter(x=>x.id!==pid).map(x=>({id:x.id,name:x.name}))}
+  v.needConfirm=!gs.confirmedPlayers.includes(pid);return v;
+}
+
+function resolveNight(gs){
+  gs.poisonList=[];const mer=gs.players.find(p=>p.role==='merlin');
+  const pt=gs.players.find(p=>p.id===gs.poisonerTarget),mt=gs.players.find(p=>p.id===gs.mageTarget);
+  if(pt&&pt.role!=='merlin')gs.poisonList.push(pt.id);
+  if(mt){const wp=gs.poisonList.includes(mt.id);if(wp)gs.poisonList=gs.poisonList.filter(id=>id!==mt.id);else if(mt.role!=='merlin')gs.poisonList.push(mt.id)}
+  if(gs.poisonerTarget&&mer&&gs.poisonerTarget===mer.id){gs.merlinPoisonCount++;if(gs.merlinPoisonCount>=3){gs.gameOver=!0;gs.winner='evil';gs.winReason='投毒者累计三次选中梅林，坏人直接获胜！';gs.phase='game-over';return}}
+  gs.phase='night-info';
+}
+
+function advanceRound(gs){gs.round++;if(gs.round>5){gs.gameOver=!0;gs.winner='good';gs.winReason='五轮任务结束，进入处决阶段（线下进行）';gs.phase='game-over'}else{gs.phase='night-poisoner';gs.poisonerTarget=null;gs.mageTarget=null;gs.poisonList=[];gs.confirmedPlayers=[]}}
+
+async function saveState(){if(!isHost||!roomCode)return;const{error}=await db.from('games').upsert({room_code:roomCode,state:gameData});if(error)console.error('Save:',error)}
+async function loadState(code){const{data,error}=await db.from('games').select('state').eq('room_code',code).single();if(error||!data)return null;return data.state}
+
+function processAction(gs,a){
+  if(a.type==='confirm'){if(!gs.confirmedPlayers.includes(a.playerId))gs.confirmedPlayers.push(a.playerId);checkPhase(gs);return}
+  if(a.type==='night-action'){if(gs.phase==='night-poisoner'&&a.actionType==='poison'){gs.poisonerTarget=a.targetId||null;gs.phase='night-mage';gs.confirmedPlayers=[]}else if(gs.phase==='night-mage'&&a.actionType==='detox'){gs.mageTarget=a.targetId||null;resolveNight(gs);gs.confirmedPlayers=[]}}
+}
+function checkPhase(gs){const ids=gs.players.map(p=>p.id);if(ids.every(id=>gs.confirmedPlayers.includes(id))){if(gs.phase==='role-reveal'){gs.phase='night-poisoner';gs.confirmedPlayers=[]}else if(gs.phase==='night-info')advanceRound(gs)}}
+
+function setupRealtime(){
+  dbChannel=db.channel('db-'+roomCode).on('postgres_changes',{event:'*',schema:'public',table:'games',filter:'room_code=eq.'+roomCode},(p)=>{const ns=p.new?.state;if(ns){gameData=ns;updateUI()}}).subscribe();
+  actionChannel=db.channel('act-'+roomCode).on('broadcast',{event:'action'},(p)=>{if(!isHost||!gameData)return;processAction(gameData,p.payload);saveState()}).subscribe();
+}
+function sendAction(a){if(actionChannel)actionChannel.send({type:'broadcast',event:'action',payload:{...a,playerId:myPlayerId}})}
+function hostDo(a){if(!gameData)return;processAction(gameData,{...a,playerId:myPlayerId});saveState()}
+
+function updateUI(){if(!gameData)return;if(gameData.phase==='lobby'){updateLobbyUI();return}const v=getPlayerView(gameData,myPlayerId);if(!v)return;myRole=v.myRole;switch(v.phase){case'role-reveal':showRoleUI(v);break;case'night-poisoner':v.canAct?showActionUI(v,'poison'):showWaitUI(v);break;case'night-mage':v.canAct?showActionUI(v,'detox'):showWaitUI(v);break;case'night-info':showInfoUI(v);break;case'game-over':showOverUI(v);break}}
+function showRoleUI(v){showScreen('role-reveal');const r=getRole(v.myRole);$('#role-icon').textContent=r.icon;$('#role-name').textContent=r.name;$('#role-side').textContent=r.sideLabel;$('#role-side').className='role-side '+r.side;$('#role-desc').textContent=r.desc;let h='';if(v.unusedRole)h+=`<p>📋 未入局身份：<strong>${v.unusedRole.name}</strong></p>`;if(v.merlinInfo)h+=`<p>👁️ 投毒者是：<strong>${v.merlinInfo.poisonerName}</strong></p>`;if(v.loyalistInfo)h+=`<p>👑 梅林是：<strong>${v.loyalistInfo.merlinName}</strong></p>`;const e=$('#role-extra-info');if(h){e.innerHTML=h;e.classList.remove('hidden')}else e.classList.add('hidden')}
+function showWaitUI(v){showScreen('night-waiting');$('#round-num-waiting').textContent=v.round;$('#waiting-reason').textContent=v.phase==='night-poisoner'?'等待投毒者行动…':v.phase==='night-mage'?'等待法师行动…':'等待其他玩家…'}
+function showActionUI(v,at){showScreen('night-action');$('#round-num-action').textContent=v.round;if(at==='poison'){$('#action-title').textContent='☠️ 投毒者行动';$('#action-desc').textContent='选择一名玩家投毒（中毒者白天被迫破坏）';$('#action-hint').textContent='梅林免疫投毒'}else{$('#action-title').textContent='🧙 法师行动';$('#action-desc').textContent='若认为某人被投毒，对其施法解毒';$('#action-hint').textContent='⚠️ 若对方未中毒，毒药将反噬（梅林免疫）'}const d=$('#action-targets');d.innerHTML='';v.targets.forEach(t=>{const b=document.createElement('button');b.className='target-btn';b.textContent='👤 '+t.name;b.addEventListener('click',()=>doAction(at,t.id));d.appendChild(b)});$('#btn-action-skip').onclick=()=>doAction(at,null)}
+function showInfoUI(v){showScreen('night-info');$('#round-num-info').textContent=v.round;const r=getRole(v.myRole);let h='';if(v.merlinInfo)h=`<p>👁️ 你是<strong>${r.name}</strong></p><p>投毒者：<strong>${v.merlinInfo.poisonerName}</strong></p>`;else if(v.loyalistInfo)h=`<p>👑 你是<strong>${r.name}</strong></p><p>梅林：<strong>${v.loyalistInfo.merlinName}</strong></p>`;else if(v.sageInfo!==undefined)h=`<p>📊 你是<strong>${r.name}</strong></p><p>中毒人数：<strong>${v.sageInfo.poisonCount}</strong> 人</p>`;else if(v.myRole==='poisoner')h=`<p>☠️ 你是<strong>${r.name}</strong></p><p>行动完成</p>`;else if(v.myRole==='mage')h=`<p>🧙 你是<strong>${r.name}</strong></p><p>法术已施放</p>`;else h=`<p>你是<strong>${r.name}</strong></p><p>等待白天…</p>`;$('#night-info-content').innerHTML=h}
+function showOverUI(v){showScreen('game-over');if(v.winner==='evil'){$('#game-over-title').textContent='💀 坏人获胜';$('#game-over-icon').textContent='💀'}else{$('#game-over-title').textContent='🏆 游戏结束';$('#game-over-icon').textContent='🎉'}$('#game-over-reason').textContent=v.winReason||'';let d='最终身份：\n';if(v.players)d=v.players.map(p=>{const r=getRole(p.role);return`${p.name}: ${r.icon} ${r.name}`}).join('\n');$('#game-over-detail').textContent=d}
+
+function doAction(at,tid){const a={type:'night-action',actionType:at,targetId:tid};if(isHost){hostDo(a);showScreen('night-waiting');$('#waiting-reason').textContent='等待其他玩家…'}else{sendAction(a);showScreen('night-waiting');$('#waiting-reason').textContent='等待房主处理…'}}
+function doConfirm(){if(isHost)hostDo({type:'confirm'});else sendAction({type:'confirm'});if(gameData&&gameData.phase!=='game-over'){showScreen('night-waiting');$('#waiting-reason').textContent='等待所有玩家确认…'}}
+function updateLobbyUI(){if(!gameData)return;showScreen('lobby');$('#lobby-room-code').textContent=roomCode;$('#lobby-player-list').innerHTML=gameData.players.map(p=>`<li><span class="player-dot"></span> ${esc(p.name)} ${p.id===myPlayerId?'(我)':''}</li>`).join('');if(isHost){$('#btn-start-game').style.display='';$('#lobby-start-hint').style.display='';$('#btn-start-game').disabled=gameData.players.length!==4;$('#lobby-start-hint').textContent=gameData.players.length===4?'可以开始了！':'仅房主可开始'}else{$('#btn-start-game').style.display='none';$('#lobby-start-hint').textContent='等待房主开始…';$('#lobby-start-hint').style.display=''}}
+
+// Events
+$('#btn-create').addEventListener('click',async()=>{myName=$('#input-player-name').value.trim()||'房主';myPlayerId=genId();isHost=!0;roomCode=genRoom();if(await loadState(roomCode))roomCode=genRoom();gameData={players:[{id:myPlayerId,name:myName,role:null}],phase:'lobby',round:1,poisonerTarget:null,mageTarget:null,merlinPoisonCount:0,poisonList:[],gameOver:!1,winner:null,winReason:null,confirmedPlayers:[],unusedRole:null};await db.from('games').upsert({room_code:roomCode,state:gameData});setupRealtime();updateLobbyUI()});
+$('#btn-join').addEventListener('click',()=>$('#join-section').classList.toggle('hidden'));
+$('#btn-join-cancel').addEventListener('click',()=>$('#join-section').classList.add('hidden'));
+$('#btn-join-submit').addEventListener('click',async()=>{const code=$('#input-room-code').value.trim();myName=$('#input-player-name').value.trim()||'玩家';if(!code||code.length!==4){showToast('请输入4位房间号','error');return}const gs=await loadState(code);if(!gs){showToast('房间不存在','error');return}if(gs.players.length>=4){showToast('房间已满（4人）','error');return}if(gs.phase!=='lobby'){showToast('游戏已开始','error');return}if(gs.players.some(p=>p.name===myName)){showToast('昵称已被占用','error');return}myPlayerId=genId();isHost=!1;roomCode=code;gs.players.push({id:myPlayerId,name:myName,role:null});await db.from('games').upsert({room_code:code,state:gs});gameData=gs;setupRealtime();updateLobbyUI()});
+$('#btn-start-game').addEventListener('click',async()=>{if(!isHost||!gameData||gameData.players.length!==4)return;gameData=createGameState(gameData.players.map(p=>({id:p.id,name:p.name})));await db.from('games').upsert({room_code:roomCode,state:gameData})});
+$('#btn-confirm-role').addEventListener('click',doConfirm);
+$('#btn-confirm-info').addEventListener('click',doConfirm);
+$('#btn-new-game').addEventListener('click',()=>{if(dbChannel)db.removeChannel(dbChannel);if(actionChannel)db.removeChannel(actionChannel);isHost=!1;roomCode='';gameData=null;showScreen('home')});
+</script>
 </body>
 </html>
