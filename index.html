@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>毒药与梅林</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="app">
@@ -13,37 +14,36 @@
   <div id="screen-home" class="screen active">
     <div class="home-container">
       <h1 class="game-title">🧪 毒药与梅林</h1>
-      <p class="game-subtitle">四人身份推理 · P2P联机</p>
+      <p class="game-subtitle">四人身份推理 · 联机版</p>
       <div class="name-input">
         <label>你的昵称</label>
         <input type="text" id="input-player-name" placeholder="输入昵称" maxlength="8">
       </div>
       <div class="home-buttons">
-        <button id="btn-create" class="btn btn-primary">🏠 创建房间（房主）</button>
+        <button id="btn-create" class="btn btn-primary">🏠 创建房间</button>
         <button id="btn-join" class="btn btn-outline">🚪 加入房间</button>
       </div>
-      <div id="join-section" class="hidden">
-        <p class="hint-text">粘贴房主发来的连接码</p>
-        <textarea id="input-join-code" placeholder="粘贴连接码..." rows="3"></textarea>
-        <button id="btn-join-submit" class="btn btn-primary btn-sm">🔗 连接</button>
+      <div id="join-section" class="join-form">
+        <input type="text" id="input-room-code" placeholder="输入4位房间号" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+        <button id="btn-join-submit" class="btn btn-primary btn-sm">加入</button>
         <button id="btn-join-cancel" class="btn btn-ghost btn-sm">取消</button>
-        <div id="my-answer-section" class="hidden">
-          <p class="hint-text">⬇️ 复制下面的回复码，发回给房主</p>
-          <textarea id="output-answer" rows="3" readonly></textarea>
-          <button id="btn-copy-answer" class="btn btn-outline btn-sm">📋 复制回复码</button>
-        </div>
       </div>
     </div>
   </div>
 
-  <!-- ====== 房主大厅 ====== -->
-  <div id="screen-host-lobby" class="screen">
-    <h2>🏠 等待玩家连接</h2>
-    <div id="host-slots" class="slots">
-      <!-- 3 slots, dynamically filled -->
+  <!-- ====== 房间大厅 ====== -->
+  <div id="screen-lobby" class="screen">
+    <h2>🏠 房间大厅</h2>
+    <div class="room-code-display">
+      <span class="label">房间号</span>
+      <span id="lobby-room-code" class="code">----</span>
     </div>
-    <button id="btn-start-game" class="btn btn-primary" disabled>🎮 开始游戏（需3名玩家）</button>
-    <button id="btn-host-back" class="btn btn-ghost btn-sm">↩️ 返回</button>
+    <p class="lobby-hint">等待玩家加入（4人）…</p>
+    <ul id="lobby-player-list" class="player-list"></ul>
+    <div class="lobby-actions">
+      <button id="btn-start-game" class="btn btn-primary" disabled>🎮 开始游戏（需4人）</button>
+      <p id="lobby-start-hint" class="hint-text">仅房主可开始</p>
+    </div>
   </div>
 
   <!-- ====== 身份揭示 ====== -->
@@ -55,7 +55,7 @@
       <p id="role-side" class="role-side">---</p>
       <p id="role-desc" class="role-desc">---</p>
     </div>
-    <div id="p2p-extra-info" class="info-box hidden"></div>
+    <div id="role-extra-info" class="info-box hidden"></div>
     <button id="btn-confirm-role" class="btn btn-primary">✅ 确认身份，进入夜晚</button>
   </div>
 
@@ -70,7 +70,7 @@
     </div>
   </div>
 
-  <!-- ====== 夜晚行动（投毒者/法师通用） ====== -->
+  <!-- ====== 夜晚行动 ====== -->
   <div id="screen-night-action" class="screen">
     <h2>🌙 夜晚阶段</h2>
     <div class="round-badge">第 <span id="round-num-action">1</span> / 5 轮</div>
@@ -98,10 +98,9 @@
     <button id="btn-new-game" class="btn btn-primary">🔄 再来一局</button>
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 </div>
 
-<script src="p2p.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
